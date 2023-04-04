@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "dUPb2kiEzxVm1hBX7JH2SZBv4T0I5KERSmUdG86BGGg=",
+  "Source": "TabletService",
+  "BasePath": "_content/TabletService",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
