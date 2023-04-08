@@ -63,4 +63,54 @@ public class TabletRepository
             throw;
         }
     }
+    
+    public async Task<string> GetHTMLTemplate()
+    {
+        try
+        {
+            _connection.OpenAsync();
+            var query  = $"select HTML from html_template limit 1";
+            var cmd = new MySqlCommand(query, _connection);
+            MySqlDataReader reader =  cmd.ExecuteReader();
+
+            var html = String.Empty;
+            while (reader.Read())
+            { 
+                html = (string) reader["HTML"];
+            }
+            
+            _connection.CloseAsync();
+            return html;
+        }
+        catch (Exception e)
+        {
+            _connection.CloseAsync();
+            throw;
+        }
+    }
+    
+    public async Task<List<string>> GetListHTMLAttachments()
+    {
+        try
+        {
+            _connection.OpenAsync();
+            var query  = $"select Path from html_attachment";
+            var cmd = new MySqlCommand(query, _connection);
+            MySqlDataReader reader =  cmd.ExecuteReader();
+
+            var attachments = new List<string>();
+            while (reader.Read())
+            { 
+                attachments.Add((string) reader["Path"]);
+            }
+            
+            _connection.CloseAsync();
+            return attachments;
+        }
+        catch (Exception e)
+        {
+            _connection.CloseAsync();
+            throw;
+        }
+    }
 }
