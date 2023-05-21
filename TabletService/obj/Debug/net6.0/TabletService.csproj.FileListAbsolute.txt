@@ -47,8 +47,8 @@ D:\C\Projects\TabletService\TabletService\TabletService\obj\Debug\net6.0\staticw
 D:\C\Projects\TabletService\TabletService\TabletService\obj\Debug\net6.0\scopedcss\bundle\TabletService.styles.css
 D:\C\Projects\TabletService\TabletService\TabletService\obj\Debug\net6.0\TabletService.csproj.CopyComplete
 D:\C\Projects\TabletService\TabletService\TabletService\obj\Debug\net6.0\TabletService.dll
-D:\C\Projects\TabletService\TabletService\TabletService\obj\Debug\net6.0\refint\TabletService.dll
 D:\C\Projects\TabletService\TabletService\TabletService\obj\Debug\net6.0\TabletService.pdb
 D:\C\Projects\TabletService\TabletService\TabletService\obj\Debug\net6.0\TabletService.genruntimeconfig.cache
 D:\C\Projects\TabletService\TabletService\TabletService\obj\Debug\net6.0\ref\TabletService.dll
 D:\C\Projects\TabletService\TabletService\TabletService\bin\Debug\net6.0\appsettings.Production.json
+D:\C\Projects\TabletService\TabletService\TabletService\bin\Debug\net6.0\ref\TabletService.dll

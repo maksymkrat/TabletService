@@ -113,4 +113,23 @@ public class TabletRepository
             throw;
         }
     }
+    
+    public void  Upload(IFormFile file)
+    {
+        try
+        {
+            string uploads = Path.Combine("D:\\");
+            if (file.Length > 0)
+            {
+                string filePath = Path.Combine(uploads, file.FileName);
+                using (Stream fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                     file.CopyTo(fileStream);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+        }
+    }
 }

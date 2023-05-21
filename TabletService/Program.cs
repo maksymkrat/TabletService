@@ -1,3 +1,4 @@
+
 using TabletService.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,7 +10,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddSingleton<TabletRepository>();
+builder.Services.AddTransient<TabletRepository>();
+
 
 var app = builder.Build();
 
