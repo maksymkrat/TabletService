@@ -38,7 +38,7 @@ public class TabletController : ControllerBase
 
     [HttpPost]
     [Route("UpdateReceiptActivity")]
-    public async Task<IActionResult>  UpdateReceiptActivity();([FromBody] TabletInfoModel model)
+    public async Task<IActionResult> UpdateReceiptActivity([FromBody] TabletInfoModel model)
     {
         try
         {
