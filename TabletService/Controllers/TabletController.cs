@@ -37,6 +37,26 @@ public class TabletController : ControllerBase
     }
 
     [HttpPost]
+    [Route("UpdateReceiptActivity")]
+    public async Task<IActionResult>  UpdateReceiptActivity();([FromBody] TabletInfoModel model)
+    {
+        try
+        {
+            if (!model.AccessData.Equals(AccessData))
+            {
+                return BadRequest();
+            }
+
+            _repository.UpdateReceiptActivity(model);
+            return StatusCode(200);
+        }
+        catch (Exception e)
+        {
+            return BadRequest();
+        }
+    }
+
+    [HttpPost]
     [Route("GetHTMLWindowView")]
     public async Task<IActionResult> GetHTMLWindowView([FromBody] string accessData)
     {

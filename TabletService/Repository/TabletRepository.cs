@@ -1,4 +1,5 @@
-﻿using TabletService.Models;
+﻿using System.Data.Common;
+using TabletService.Models;
 using MySql.Data.MySqlClient;
 
 namespace TabletService.Repository;
@@ -13,8 +14,32 @@ public class TabletRepository
     public TabletRepository(IConfiguration configuration)
     {
         _configuration = configuration;
+        //var mariadbCon = "Server=127.0.0.1;Port=3008;Database=stopper_db_prod;User=root;Password=pass;";
+        //var mariadbCon = "server=localhost;port=3008;uid=root;pwd=pass;database=stopper_db_prod";
+        //_defaultConnection = mariadbCon;
         _defaultConnection =  _configuration.GetConnectionString("DefaultConnection");
         _connection = new MySqlConnection(_defaultConnection);
+    }
+
+    public async Task UpdateReceiptActivity(TabletInfoModel model)
+    {
+        try
+        {
+            _connection.Open();
+
+            var macStrToUIng = Convert.ToUInt64(model.TabletMAC);
+            var query = $"REPLACE INTO tablet_activity_receipt VALUES((select id from device where mac = {macStrToUIng}),1,now())";
+            var cmd = new MySqlCommand(query,_connection);
+            var result = cmd.ExecuteNonQuery();
+            _connection.Close();
+
+        }
+        catch (Exception e)
+        {
+            _connection.Close();
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
 
@@ -22,69 +47,47 @@ public class TabletRepository
     {
         try
         {
-            _connection.OpenAsync();
+            _connection.Open();
 
             var macStrToUIng = Convert.ToUInt64(model.TabletMAC);
             var query = $"REPLACE INTO tablet_info VALUES((select id from device where mac = {macStrToUIng}),'{model.TabletIP}',now(), '') ";
             var cmd = new MySqlCommand(query,_connection);
-            cmd.ExecuteNonQueryAsync();
+            var result =  cmd.ExecuteNonQuery();
 
-            _connection.CloseAsync();
+            _connection.Close();
         }
         catch (Exception e)
         {
-            _connection.CloseAsync();
+            Console.WriteLine(e);
+            _connection.Close();
             throw;
         }
         
     }
 
-    public async Task<string> GetPathByContentType(string contentType)
-    {
-        try
-        {
-            _connection.OpenAsync();
-            var query  = $"select ContentPath from window_content_info where  ContentType = '{contentType}'";
-            var cmd = new MySqlCommand(query, _connection);
-            MySqlDataReader reader =  cmd.ExecuteReader();
-
-            var path = String.Empty;
-            while (reader.Read())
-            { 
-                path = (string) reader["ContentPath"];
-            }
-            
-            _connection.CloseAsync();
-            return path;
-        }
-        catch (Exception e)
-        {
-            _connection.CloseAsync();
-            throw;
-        }
-    }
     
     public async Task<string> GetHTMLTemplate()
     {
         try
         {
-            _connection.OpenAsync();
+            _connection.Open();
             var query  = $"select HTML from html_template limit 1";
-            var cmd = new MySqlCommand(query, _connection);
-            MySqlDataReader reader =  cmd.ExecuteReader();
+            MySqlCommand cmd = new MySqlCommand(query, _connection);
+            DbDataReader reader =  cmd.ExecuteReader();
 
             var html = String.Empty;
-            while (reader.Read())
+            while (  reader.Read())
             { 
                 html = (string) reader["HTML"];
             }
             
-            _connection.CloseAsync();
+            _connection.Close();
             return html;
         }
         catch (Exception e)
         {
-            _connection.CloseAsync();
+            Console.WriteLine(e.ToString());
+            _connection.Close();
             throw;
         }
     }
