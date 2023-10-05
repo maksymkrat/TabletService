@@ -25,12 +25,74 @@ public class TabletRepository
     {
         try
         {
+            Console.WriteLine(DateTime.Now);
             _connection.Open();
-
+            //get device id
             var macStrToUIng = Convert.ToUInt64(model.TabletMAC);
-            var query = $"REPLACE INTO tablet_activity_receipt VALUES((select id from device where mac = {macStrToUIng}),1,now())";
+            var query = $"select id from device where mac = {macStrToUIng}";
             var cmd = new MySqlCommand(query,_connection);
-            var result = cmd.ExecuteNonQuery();
+            var reader = cmd.ExecuteReader();
+            reader.Read();
+            var deviceId =  Convert.ToInt32(reader["id"]);
+            
+            _connection.Close();
+            if (deviceId > 0)
+            {
+                // get
+                // datetime
+                _connection.Open();
+                query = $"select checks_per_day, change_date from tablet_activity_receipt where device_id = {deviceId}";
+                 cmd = new MySqlCommand(query,_connection);
+                 reader = cmd.ExecuteReader();
+                 
+                 if (reader.Read())
+                 {
+                     var checksPerDay = (int) reader["checks_per_day"];
+                     var changeDate = (DateTime) reader["change_date"];
+                     _connection.Close();
+                     
+                     if (changeDate.Day == DateTime.Now.Day)
+                     {
+                         InsertOrUpdateReceiptActivity(deviceId,checksPerDay +1);
+                     }
+                     else
+                     {
+                         InsertOrUpdateReceiptActivity(deviceId,1);
+                     }
+                 }
+                 else
+                 {
+                     InsertOrUpdateReceiptActivity(deviceId,1);
+                 }
+                
+                
+               
+            }
+            
+            _connection.Close();
+            Console.WriteLine(DateTime.Now);
+
+        }
+        catch (Exception e)
+        {
+            _connection.Close();
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    private void InsertOrUpdateReceiptActivity(int deviceId, int checksPerDay)
+    {
+
+        try
+        {
+
+            _connection.Open();
+            
+            var query = $"REPLACE INTO tablet_activity_receipt VALUES({deviceId},{checksPerDay},now())";
+            var cmd = new MySqlCommand(query,_connection);
+            var result1 = cmd.ExecuteNonQuery();
+
             _connection.Close();
 
         }
