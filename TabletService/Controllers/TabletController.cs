@@ -75,6 +75,48 @@ public class TabletController : ControllerBase
     }
 
     [HttpPost]
+    [Route("GetHtmlResourcesByDeviceId")]
+    public async Task<IActionResult> GetHtmlResourcesByDeviceId([FromBody] TabletInfoModel model)
+    {
+        if (!model.AccessData.Equals(AccessData))
+            return BadRequest();
+       
+        try
+        {
+            var resourcesModel = await _repository.GetHtmlResourcesByDeviceId(model.TabletMAC);
+
+            var file = new FileModel();
+            file.FileName = Path.GetFileNameWithoutExtension(resourcesModel.AtachmentPath);
+            file.FileExtension = Path.GetExtension(resourcesModel.AtachmentPath);
+
+            using (var fileStream = new FileStream(resourcesModel.AtachmentPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                using (var memoryStream = new MemoryStream())
+                {
+                    await fileStream.CopyToAsync(memoryStream);
+                    var bytes = memoryStream.ToArray();
+                    file.FileBytes = bytes;
+                }
+            }
+            var htmlMedia = new HtmlMediaModel();
+            htmlMedia.HTML = resourcesModel.HTML;
+            htmlMedia.FileModel = file;
+
+            return Ok(htmlMedia);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.ToString());
+            return BadRequest();
+        }
+        finally
+        {
+            GC.Collect();
+            GC.Collect(2);
+        }
+    }
+
+    [HttpPost]
     [Route("GetMediaFiles")]
     public async Task<IActionResult> GetMediaFiles([FromBody] string accessData)
     {
@@ -108,6 +150,7 @@ public class TabletController : ControllerBase
         }
         catch (Exception e)
         {
+            Console.WriteLine(e.ToString());
             return BadRequest();
         }
         finally

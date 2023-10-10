@@ -14,9 +14,6 @@ public class TabletRepository
     public TabletRepository(IConfiguration configuration)
     {
         _configuration = configuration;
-        //var mariadbCon = "Server=127.0.0.1;Port=3008;Database=stopper_db_prod;User=root;Password=pass;";
-        //var mariadbCon = "server=localhost;port=3008;uid=root;pwd=pass;database=stopper_db_prod";
-        //_defaultConnection = mariadbCon;
         _defaultConnection =  _configuration.GetConnectionString("DefaultConnection");
         _connection = new MySqlConnection(_defaultConnection);
     }
@@ -153,12 +150,43 @@ public class TabletRepository
             throw;
         }
     }
-    
+
+    public async Task<HtmlResourcesModel> GetHtmlResourcesByDeviceId(string mac)
+    {
+        try
+        {
+            _connection.Open();
+            var macStrToUIng = Convert.ToUInt64(mac);
+            
+            var query  = $"select html_template, attachment_path from html_resources where device_id = (select id from device where mac = {macStrToUIng})";
+            MySqlCommand cmd = new MySqlCommand(query, _connection);
+            DbDataReader reader =  cmd.ExecuteReader();
+
+            HtmlResourcesModel htmlResources = new HtmlResourcesModel();
+            if(  reader.Read())
+            { 
+                htmlResources.HTML = (string) reader["html_template"];
+                htmlResources.AtachmentPath = (string) reader["attachment_path"];
+            }
+            
+            _connection.Close();
+            return htmlResources;
+            
+            
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.ToString());
+            _connection.Close();
+            throw;
+        }
+    }
+
     public async Task<List<string>> GetListHTMLAttachments()
     {
         try
         {
-            _connection.OpenAsync();
+            _connection.Open();
             var query  = $"select Path from html_attachment";
             var cmd = new MySqlCommand(query, _connection);
             MySqlDataReader reader =  cmd.ExecuteReader();
@@ -169,32 +197,14 @@ public class TabletRepository
                 attachments.Add((string) reader["Path"]);
             }
             
-            _connection.CloseAsync();
+            _connection.Close();
             return attachments;
         }
         catch (Exception e)
         {
+            Console.WriteLine(e.ToString());
             _connection.CloseAsync();
             throw;
-        }
-    }
-    
-    public void  Upload(IFormFile file)
-    {
-        try
-        {
-            string uploads = Path.Combine("D:\\");
-            if (file.Length > 0)
-            {
-                string filePath = Path.Combine(uploads, file.FileName);
-                using (Stream fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                     file.CopyTo(fileStream);
-                }
-            }
-        }
-        catch (Exception e)
-        {
         }
     }
 }
