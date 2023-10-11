@@ -27,7 +27,7 @@ public class TabletController : ControllerBase
                 return BadRequest();
             }
 
-            _repository.InsertOrUpdateTabletIp(model);
+            await _repository.InsertOrUpdateTabletIp(model);
             return StatusCode(200);
         }
         catch (Exception e)
@@ -47,7 +47,7 @@ public class TabletController : ControllerBase
                 return BadRequest();
             }
 
-            _repository.UpdateReceiptActivity(model);
+            await _repository.UpdateReceiptActivity(model);
             return StatusCode(200);
         }
         catch (Exception e)

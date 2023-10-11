@@ -14,88 +14,83 @@ public class TabletRepository
     public TabletRepository(IConfiguration configuration)
     {
         _configuration = configuration;
-        _defaultConnection =  _configuration.GetConnectionString("DefaultConnection");
+        _defaultConnection =  _configuration.GetConnectionString("DefaultConnection"); 
+        
         _connection = new MySqlConnection(_defaultConnection);
+        
     }
 
     public async Task UpdateReceiptActivity(TabletInfoModel model)
     {
         try
         {
-            Console.WriteLine(DateTime.Now);
-            _connection.Open();
+           await _connection.OpenAsync();
             //get device id
             var macStrToUIng = Convert.ToUInt64(model.TabletMAC);
             var query = $"select id from device where mac = {macStrToUIng}";
             var cmd = new MySqlCommand(query,_connection);
-            var reader = cmd.ExecuteReader();
-            reader.Read();
+            var reader =await cmd.ExecuteReaderAsync();
+           await reader.ReadAsync();
             var deviceId =  Convert.ToInt32(reader["id"]);
             
-            _connection.Close();
+            await _connection.CloseAsync();
             if (deviceId > 0)
             {
                 // get
                 // datetime
-                _connection.Open();
+               await _connection.OpenAsync();
                 query = $"select checks_per_day, change_date from tablet_activity_receipt where device_id = {deviceId}";
                  cmd = new MySqlCommand(query,_connection);
-                 reader = cmd.ExecuteReader();
+                 reader = await cmd.ExecuteReaderAsync();
                  
-                 if (reader.Read())
+                 if (await reader.ReadAsync())
                  {
                      var checksPerDay = (int) reader["checks_per_day"];
                      var changeDate = (DateTime) reader["change_date"];
-                     _connection.Close();
+                     await _connection.CloseAsync();
                      
                      if (changeDate.Day == DateTime.Now.Day)
                      {
-                         InsertOrUpdateReceiptActivity(deviceId,checksPerDay +1);
+                         await InsertOrUpdateReceiptActivity(deviceId,checksPerDay +1);
                      }
                      else
                      {
-                         InsertOrUpdateReceiptActivity(deviceId,1);
+                        await InsertOrUpdateReceiptActivity(deviceId,1);
                      }
                  }
                  else
                  {
-                     InsertOrUpdateReceiptActivity(deviceId,1);
+                     await InsertOrUpdateReceiptActivity(deviceId,1);
                  }
-                
-                
-               
             }
             
-            _connection.Close();
-            Console.WriteLine(DateTime.Now);
-
+            await _connection.CloseAsync();
         }
         catch (Exception e)
         {
-            _connection.Close();
+            await _connection.CloseAsync();
             Console.WriteLine(e);
             throw;
         }
     }
 
-    private void InsertOrUpdateReceiptActivity(int deviceId, int checksPerDay)
+    private async Task InsertOrUpdateReceiptActivity(int deviceId, int checksPerDay)
     {
 
         try
         {
-
-            _connection.Open();
+           await _connection.OpenAsync();
             
             var query = $"REPLACE INTO tablet_activity_receipt VALUES({deviceId},{checksPerDay},now())";
             var cmd = new MySqlCommand(query,_connection);
-            var result1 = cmd.ExecuteNonQuery();
+            var result1 = await cmd.ExecuteNonQueryAsync();
 
-            _connection.Close();
+            await _connection.CloseAsync();
 
         }
         catch (Exception e)
         {
-            _connection.Close();
+            await _connection.CloseAsync();
             Console.WriteLine(e);
             throw;
         }
@@ -106,19 +101,19 @@ public class TabletRepository
     {
         try
         {
-            _connection.Open();
+            await _connection.OpenAsync();
 
             var macStrToUIng = Convert.ToUInt64(model.TabletMAC);
             var query = $"REPLACE INTO tablet_info VALUES((select id from device where mac = {macStrToUIng}),'{model.TabletIP}',now(), '') ";
             var cmd = new MySqlCommand(query,_connection);
-            var result =  cmd.ExecuteNonQuery();
+            var result = await cmd.ExecuteNonQueryAsync();
 
-            _connection.Close();
+            await _connection.CloseAsync();
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            _connection.Close();
+           await _connection.CloseAsync();
             throw;
         }
         
@@ -129,24 +124,24 @@ public class TabletRepository
     {
         try
         {
-            _connection.Open();
+           await _connection.OpenAsync();
             var query  = $"select HTML from html_template limit 1";
             MySqlCommand cmd = new MySqlCommand(query, _connection);
-            DbDataReader reader =  cmd.ExecuteReader();
+            DbDataReader reader =  await cmd.ExecuteReaderAsync();
 
             var html = String.Empty;
-            while (  reader.Read())
+            while (await  reader.ReadAsync())
             { 
                 html = (string) reader["HTML"];
             }
             
-            _connection.Close();
+            await _connection.CloseAsync();
             return html;
         }
         catch (Exception e)
         {
             Console.WriteLine(e.ToString());
-            _connection.Close();
+            await _connection.CloseAsync();
             throw;
         }
     }
@@ -155,21 +150,21 @@ public class TabletRepository
     {
         try
         {
-            _connection.Open();
+            await _connection.OpenAsync();
             var macStrToUIng = Convert.ToUInt64(mac);
             
             var query  = $"select html_template, attachment_path from html_resources where device_id = (select id from device where mac = {macStrToUIng})";
             MySqlCommand cmd = new MySqlCommand(query, _connection);
-            DbDataReader reader =  cmd.ExecuteReader();
+            DbDataReader reader = await cmd.ExecuteReaderAsync();
 
             HtmlResourcesModel htmlResources = new HtmlResourcesModel();
-            if(  reader.Read())
+            if(await  reader.ReadAsync())
             { 
                 htmlResources.HTML = (string) reader["html_template"];
                 htmlResources.AtachmentPath = (string) reader["attachment_path"];
             }
             
-            _connection.Close();
+           await _connection.CloseAsync();
             return htmlResources;
             
             
@@ -177,7 +172,7 @@ public class TabletRepository
         catch (Exception e)
         {
             Console.WriteLine(e.ToString());
-            _connection.Close();
+           await _connection.CloseAsync();
             throw;
         }
     }
@@ -186,24 +181,24 @@ public class TabletRepository
     {
         try
         {
-            _connection.Open();
+            await _connection.OpenAsync();
             var query  = $"select Path from html_attachment";
             var cmd = new MySqlCommand(query, _connection);
-            MySqlDataReader reader =  cmd.ExecuteReader();
+            var reader = await  cmd.ExecuteReaderAsync();
 
             var attachments = new List<string>();
-            while (reader.Read())
+            while (await reader.ReadAsync())
             { 
                 attachments.Add((string) reader["Path"]);
             }
             
-            _connection.Close();
+            await _connection.CloseAsync();
             return attachments;
         }
         catch (Exception e)
         {
             Console.WriteLine(e.ToString());
-            _connection.CloseAsync();
+            await _connection.CloseAsync();
             throw;
         }
     }
