@@ -60,6 +60,7 @@ public class TabletRepository
                  }
                  else
                  {
+                     await _connection.CloseAsync();
                      await InsertOrUpdateReceiptActivity(deviceId,1);
                  }
             }
