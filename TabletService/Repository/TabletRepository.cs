@@ -39,33 +39,43 @@ public class TabletRepository
                 // get
                 // datetime
                await _connection.OpenAsync();
-                query = $"select checks_per_day, change_date from tablet_activity_receipt where device_id = {deviceId}";
+                query = $"select checks_per_day, change_checks_date from html_content_planning where device_id = {deviceId}";
                  cmd = new MySqlCommand(query,_connection);
                  reader = await cmd.ExecuteReaderAsync();
                  
                  if (await reader.ReadAsync())
                  {
-                     var checksPerDay = (int) reader["checks_per_day"];
-                     var changeDate = (DateTime) reader["change_date"];
+                     var checksPerDay =  reader["checks_per_day"];
+                     var changeDate =  reader["change_checks_date"];
                      await _connection.CloseAsync();
-                     
-                     if (changeDate.Day == DateTime.Now.Day)
+                     if (checksPerDay is DBNull || changeDate is DBNull)
                      {
-                         await InsertOrUpdateReceiptActivity(deviceId,checksPerDay +1);
+                         await UpdateReceiptActivity(deviceId,1);
                      }
                      else
                      {
-                        await InsertOrUpdateReceiptActivity(deviceId,1);
+                         DateTime date = (DateTime) changeDate;
+                         if (date.Day == DateTime.Now.Day)
+                         {
+                             await UpdateReceiptActivity(deviceId,(int)checksPerDay +1);
+                         }
+                         else
+                         {
+                             await UpdateReceiptActivity(deviceId,1);
+                         }
+                         
                      }
+                     
+                    
                  }
                  else
                  {
                      await _connection.CloseAsync();
-                     await InsertOrUpdateReceiptActivity(deviceId,1);
+                    await InsertReceiptActivity(deviceId,1);
                  }
             }
             
-            await _connection.CloseAsync();
+            //await _connection.CloseAsync();
         }
         catch (Exception e)
         {
@@ -75,14 +85,36 @@ public class TabletRepository
         }
     }
 
-    private async Task InsertOrUpdateReceiptActivity(int deviceId, int checksPerDay)
+    private async Task InsertReceiptActivity(int deviceId, int checksPerDay)
     {
 
         try
         {
            await _connection.OpenAsync();
             
-            var query = $"REPLACE INTO tablet_activity_receipt VALUES({deviceId},{checksPerDay},now())";
+            var query = $"INSERT INTO html_content_planning (device_id, checks_per_day, change_checks_date) value ({deviceId}, {checksPerDay},now())";
+            var cmd = new MySqlCommand(query,_connection);
+            var result1 = await cmd.ExecuteNonQueryAsync();
+
+            await _connection.CloseAsync();
+
+        }
+        catch (Exception e)
+        {
+            await _connection.CloseAsync();
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+    
+    private async Task UpdateReceiptActivity(int deviceId, int checksPerDay)
+    {
+
+        try
+        {
+            await _connection.OpenAsync();
+            
+            var query = $"update  html_content_planning  set checks_per_day = {checksPerDay}, change_checks_date = now() where device_id = {deviceId}";
             var cmd = new MySqlCommand(query,_connection);
             var result1 = await cmd.ExecuteNonQueryAsync();
 
@@ -154,7 +186,7 @@ public class TabletRepository
             await _connection.OpenAsync();
             var macStrToUIng = Convert.ToUInt64(mac);
             
-            var query  = $"select html_template, attachment_path from html_resources where device_id = (select id from device where mac = {macStrToUIng})";
+            var query  = $"";
             MySqlCommand cmd = new MySqlCommand(query, _connection);
             DbDataReader reader = await cmd.ExecuteReaderAsync();
 
