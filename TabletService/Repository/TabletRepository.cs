@@ -201,7 +201,7 @@ public class TabletRepository
             await _connection.OpenAsync();
 
             var query =
-                $"update  html_content_planning  set device_ip = {deviceIp}, change_ip_date = now() where device_id = {deviceId}";
+                $"update  html_content_planning  set device_ip = '{deviceIp}', change_ip_date = now() where device_id = {deviceId}";
             var cmd = new MySqlCommand(query, _connection);
             var result1 = await cmd.ExecuteNonQueryAsync();
             await _connection.CloseAsync();
